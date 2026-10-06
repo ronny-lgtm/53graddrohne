@@ -614,11 +614,11 @@ footer .small{font-size:.75rem;opacity:.6;margin-top:28px;border-top:1px solid r
 
 <div class="cc" id="cc" role="dialog" aria-modal="false" aria-labelledby="cc-t">
   <h3 id="cc-t">Cookies &amp; Statistik</h3>
-  <p>Ich nutze Google Analytics und Google Ads, um zu verstehen, wie die Seite genutzt wird, und meine Werbung zu verbessern. Das passiert nur mit deiner Einwilligung, die du jederzeit unter „Cookie-Einstellungen“ im Footer widerrufen kannst. Mehr in der <a href="https://www.53-usedom.de/datenschutz" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>
+  <p>Ich nutze Google Analytics, Google Ads und das Meta-Pixel (Facebook/Instagram), um zu verstehen, wie die Seite genutzt wird, und meine Werbung zu verbessern. Das passiert nur mit deiner Einwilligung, die du jederzeit unter „Cookie-Einstellungen“ im Footer widerrufen kannst. Mehr in der <a href="https://www.53-usedom.de/datenschutz" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>
   <div class="more">
     <label class="opt-row"><input type="checkbox" checked disabled> <span><strong>Notwendig</strong><br>Speichert nur deine Cookie-Auswahl. Immer aktiv.</span></label>
     <label class="opt-row"><input type="checkbox" id="cc-stats"> <span><strong>Statistik</strong> (Google Analytics)<br>Anonyme Auswertung der Seitennutzung.</span></label>
-    <label class="opt-row"><input type="checkbox" id="cc-ads"> <span><strong>Marketing</strong> (Google Ads)<br>Messung von Anfragen aus Werbeanzeigen.</span></label>
+    <label class="opt-row"><input type="checkbox" id="cc-ads"> <span><strong>Marketing</strong> (Google Ads, Meta-Pixel)<br>Messung von Anfragen aus Werbeanzeigen auf Google, Facebook und Instagram.</span></label>
   </div>
   <div class="btns">
     <button type="button" class="btn btn-line" id="cc-deny">Nur notwendige</button>
@@ -633,6 +633,7 @@ footer .small{font-size:.75rem;opacity:.6;margin-top:28px;border-top:1px solid r
 var GA4_ID = 'G-6SYPX38Q7D';      // Google Analytics 4 Mess-ID
 var ADS_ID = '';                  // optional: Google Ads, z. B. 'AW-123456789'
 var ADS_CONVERSION_LABEL = '';    // optional: Conversion-Label für "Anfrage gesendet"
+var META_PIXEL_ID = '';           // Meta-Pixel / Datensatz-ID (nur Ziffern)
 /* =========================================================== */
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
@@ -644,6 +645,7 @@ gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personali
   function valid(id){return id&&!/X{4}/.test(id)}
   function apply(c){
     gtag('consent','update',{analytics_storage:c.stats?'granted':'denied',ad_storage:c.ads?'granted':'denied',ad_user_data:c.ads?'granted':'denied',ad_personalization:c.ads?'granted':'denied'});
+    if(c.ads&&/^\d{6,}$/.test(META_PIXEL_ID)&&!window.fbq){!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init',META_PIXEL_ID);fbq('track','PageView');}
     if(loaded||!(c.stats||c.ads))return;
     var first=c.stats&&valid(GA4_ID)?GA4_ID:(c.ads&&valid(ADS_ID)?ADS_ID:null);if(!first)return;
     loaded=true;var sc=document.createElement('script');sc.async=true;sc.src='https://www.googletagmanager.com/gtag/js?id='+first;document.head.appendChild(sc);
@@ -666,6 +668,7 @@ gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personali
   /* Conversion bei gesendeter Anfrage */
   window.trackAnfrage=function(paket,preis){
     var c=read()||{};
+    if(c.ads&&window.fbq)fbq('track','Lead',{content_name:paket,value:parseInt(preis,10)||0,currency:'EUR'});
     if(c.stats&&valid(GA4_ID))gtag('event','generate_lead',{paket:paket,value:parseInt(preis,10)||0,currency:'EUR'});
     if(c.ads&&valid(ADS_ID)&&ADS_CONVERSION_LABEL)gtag('event','conversion',{send_to:ADS_ID+'/'+ADS_CONVERSION_LABEL,value:parseInt(preis,10)||0,currency:'EUR'});
   };
